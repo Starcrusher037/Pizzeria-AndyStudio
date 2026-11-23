@@ -23,4 +23,15 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "PizzeriaApp"
+
+// Modulo principal de la aplicacion Android
 include(":app")
+
+// Modulo de datos: clases de dominio (Cliente, Producto, Pedido) y logica de negocio
+include(":data")
+
+// Modulo de utilidades: validaciones, manejo de errores y operaciones reutilizables
+include(":utilities")
+
+// Modulo de UI: ViewModel compartido y componentes Compose reutilizables
+include(":ui-module")

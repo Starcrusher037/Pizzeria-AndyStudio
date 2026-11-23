@@ -1,0 +1,4 @@
+com.gourmet.pizzeriaapp.uimodule.test.ui-module-mergeDebugUnitTestResources-0 C:\Users\kk638\AndroidStudioProjects\PizzeriaApp\ui-module\build\intermediates\incremental\debugUnitTest\mergeDebugUnitTestResources\merged.dir
+com.gourmet.pizzeriaapp.uimodule.test.ui-module-mergeDebugUnitTestResources-1 C:\Users\kk638\AndroidStudioProjects\PizzeriaApp\ui-module\build\intermediates\incremental\debugUnitTest\mergeDebugUnitTestResources\stripped.dir
+com.gourmet.pizzeriaapp.uimodule.test.ui-module-debugUnitTest-2 C:\Users\kk638\AndroidStudioProjects\PizzeriaApp\ui-module\build\intermediates\merged_res\debugUnitTest\mergeDebugUnitTestResources
+gradleHome-0 C:\Users\kk638\.gradle
