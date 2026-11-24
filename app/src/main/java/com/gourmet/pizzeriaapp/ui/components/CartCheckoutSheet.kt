@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -40,6 +41,7 @@ fun CartCheckoutSheet(
     }
     val pedidoPreview = appState.obtenerPedidoPreview()
     var pasoCheckout by remember { mutableStateOf(false) }
+    var errorLocal by remember { mutableStateOf<String?>(null) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -187,7 +189,10 @@ fun CartCheckoutSheet(
                 // Resumen de totales
                 if (pedidoPreview != null) {
                     val subtotal = pedidoPreview.calcularSubtotal()
-                    val descuento = pedidoPreview.calcularDescuento()
+                    val descFecha = pedidoPreview.calcularDescuentoPorFecha()
+                    val descVolumen = pedidoPreview.calcularDescuentoVolumen()
+                    val descAnotacion = pedidoPreview.calcularDescuentoPorAnotacion()
+                    val impuestos = pedidoPreview.calcularImpuestos()
                     val total = pedidoPreview.calcularTotal()
 
                     Surface(
@@ -206,14 +211,39 @@ fun CartCheckoutSheet(
                                 Text("Subtotal:", fontSize = 13.sp, color = TextSecondary)
                                 Text(FormatoUtilidades.formatearCLP(subtotal, incluirMoneda = true), fontSize = 13.sp, color = TextPrimary)
                             }
-                            if (descuento > 0) {
+                            if (descFecha > 0) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Text("Descuentos aplicados:", fontSize = 13.sp, color = FreshGreen)
-                                    Text("-${FormatoUtilidades.formatearCLP(descuento, incluirMoneda = true)}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = FreshGreen)
+                                    Text("Promo Noviembre (10%):", fontSize = 13.sp, color = FreshGreen)
+                                    Text("-${FormatoUtilidades.formatearCLP(descFecha, incluirMoneda = true)}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = FreshGreen)
                                 }
+                            }
+                            if (descVolumen > 0) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text("Descuento volumen (>3 pizzas):", fontSize = 13.sp, color = FreshGreen)
+                                    Text("-${FormatoUtilidades.formatearCLP(descVolumen, incluirMoneda = true)}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = FreshGreen)
+                                }
+                            }
+                            if (descAnotacion > 0) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text("Promo especial producto:", fontSize = 13.sp, color = FreshGreen)
+                                    Text("-${FormatoUtilidades.formatearCLP(descAnotacion, incluirMoneda = true)}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = FreshGreen)
+                                }
+                            }
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text("IVA incluido (19%):", fontSize = 13.sp, color = TextSecondary)
+                                Text(FormatoUtilidades.formatearCLP(impuestos, incluirMoneda = true), fontSize = 13.sp, color = TextSecondary)
                             }
                             HorizontalDivider(color = SurfaceBeige)
                             Row(
@@ -251,6 +281,53 @@ fun CartCheckoutSheet(
                     )
                 }
             } else {
+                // Diálogo de error por stock insuficiente (dentro del sheet para que sea visible)
+                if (appState.errorStockFaltante != null) {
+                    AlertDialog(
+                        onDismissRequest = { appState.errorStockFaltante = null },
+                        title = {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Warning,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                                Text("Stock Insuficiente")
+                            }
+                        },
+                        text = {
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text("No hay suficientes insumos en inventario para procesar el pedido:")
+                                appState.errorStockFaltante?.forEach {
+                                    Text("• $it", color = MaterialTheme.colorScheme.error, fontSize = 13.sp)
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    "Puedes presionar 'Reabastecer Todo' para recargar los ingredientes de la simulación.",
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        },
+                        confirmButton = {
+                            Button(onClick = {
+                                appState.reabastecerTodo()
+                            }) {
+                                Text("Reabastecer Todo (+15)")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { appState.errorStockFaltante = null }) {
+                                Text("Cerrar")
+                            }
+                        }
+                    )
+                }
+
                 // Formulario de datos de cliente para confirmar
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -258,7 +335,7 @@ fun CartCheckoutSheet(
                 ) {
                     OutlinedTextField(
                         value = appState.nombreCliente,
-                        onValueChange = { appState.nombreCliente = it },
+                        onValueChange = { appState.nombreCliente = it; errorLocal = null },
                         label = { Text("Tu Nombre Completo *") },
                         placeholder = { Text("Ej: Valentina Carrasco") },
                         modifier = Modifier.fillMaxWidth(),
@@ -271,7 +348,7 @@ fun CartCheckoutSheet(
 
                     OutlinedTextField(
                         value = appState.direccionCliente,
-                        onValueChange = { appState.direccionCliente = it },
+                        onValueChange = { appState.direccionCliente = it; errorLocal = null },
                         label = { Text("Dirección de Entrega *") },
                         placeholder = { Text("Av. Providencia 1234, Providencia") },
                         modifier = Modifier.fillMaxWidth(),
@@ -288,7 +365,7 @@ fun CartCheckoutSheet(
                     ) {
                         OutlinedTextField(
                             value = appState.telefonoCliente,
-                            onValueChange = { appState.telefonoCliente = it },
+                            onValueChange = { appState.telefonoCliente = it; errorLocal = null },
                             label = { Text("Teléfono") },
                             placeholder = { Text("+56 9 8765 4321") },
                             modifier = Modifier.weight(1f),
@@ -300,7 +377,7 @@ fun CartCheckoutSheet(
                         )
                         OutlinedTextField(
                             value = appState.emailCliente,
-                            onValueChange = { appState.emailCliente = it },
+                            onValueChange = { appState.emailCliente = it; errorLocal = null },
                             label = { Text("Correo") },
                             placeholder = { Text("cliente@email.com") },
                             modifier = Modifier.weight(1f),
@@ -328,6 +405,45 @@ fun CartCheckoutSheet(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
+                    // Banner de error de validación (visible dentro del sheet)
+                    if (errorLocal != null) {
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Warning,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                                Text(
+                                    text = errorLocal!!,
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onErrorContainer,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                IconButton(
+                                    onClick = { errorLocal = null },
+                                    modifier = Modifier.size(24.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = "Cerrar error",
+                                        modifier = Modifier.size(16.dp),
+                                        tint = MaterialTheme.colorScheme.onErrorContainer
+                                    )
+                                }
+                            }
+                        }
+                    }
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -347,6 +463,10 @@ fun CartCheckoutSheet(
                                 val exito = appState.confirmarPedido()
                                 if (exito) {
                                     onPedidoConfirmado()
+                                } else {
+                                    // Capturar el mensaje de error y mostrarlo localmente en el sheet
+                                    errorLocal = appState.mensajeNotificacion
+                                    appState.mensajeNotificacion = null
                                 }
                             },
                             modifier = Modifier

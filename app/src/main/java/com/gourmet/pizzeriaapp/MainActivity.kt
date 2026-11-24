@@ -87,7 +87,7 @@ fun GreetingsPreview() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PizzeriaMainScreen() {
-    val appState = remember { PizzeriaAppState() }
+    val appState: PizzeriaAppState = viewModel()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var pestanaSeleccionada by remember { mutableIntStateOf(0) }

@@ -15,9 +15,10 @@ import com.gourmet.pizzeriaapp.service.InventarioService
 import com.gourmet.pizzeriaapp.service.PedidoService
 import com.gourmet.pizzeriaapp.util.ValidadorEntrada
 import com.gourmet.pizzeriaapp.utilidades.GestorRegistro
+import androidx.lifecycle.ViewModel
 import java.time.LocalDate
 
-class PizzeriaAppState {
+class PizzeriaAppState : ViewModel() {
 
     var siguienteIdPedido by mutableIntStateOf(101)
         private set
@@ -283,6 +284,7 @@ class PizzeriaAppState {
         }
     }
 
+    // Funciones de reabastecimiento: se mantienen para soporte del diálogo y para una futura implementación en un panel de administración/cocina
     fun reabastecerIngrediente(ingrediente: String, cantidad: Int = 10) {
         InventarioService.reabastecer(ingrediente, cantidad)
         sincronizarStock()

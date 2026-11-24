@@ -2,16 +2,37 @@ package com.gourmet.pizzeriaapp.service
 
 import com.gourmet.pizzeriaapp.model.Producto
 
+/**
+ * Servicio de Inventario:
+ * Actualmente la interfaz de usuario de Inventario fue retirada del flujo del cliente.
+ * Este servicio y su lógica de gestión de stock quedan activos en segundo plano y
+ * preservados para una futura implementación (módulo administrativo/bodega).
+ */
 object InventarioService {
 
     // Encapsulado: el mapa mutable no puede ser alterado directamente desde el exterior
     private val stockIngredientes: MutableMap<String, Int> = mutableMapOf(
-        "Masa" to 15,
-        "Salsa de Tomate" to 15,
-        "Queso Mozzarella" to 15,
-        "Pepperoni" to 6,
-        "Jamón" to 6,
-        "Champiñones" to 6
+        // Ingredientes base clásicos
+        "Masa" to 25,
+        "Salsa de Tomate" to 25,
+        "Queso Mozzarella" to 25,
+        "Pepperoni" to 15,
+        "Jamón" to 15,
+        "Champiñones" to 15,
+        // Ingredientes Pizzas Gourmet
+        "Salsa San Marzano" to 25,
+        "Mozzarella fior di latte" to 25,
+        "Albahaca fresca" to 25,
+        "Aceite de oliva" to 25,
+        "Pepperoni artesanal" to 25,
+        "Mozzarella fundida" to 25,
+        "Chile quebrado" to 25,
+        "Miel de abeja picante" to 25,
+        "Mozzarella" to 25,
+        "Gorgonzola dulce" to 25,
+        "Parmesano reggiano" to 25,
+        "Fontina" to 25,
+        "Nuez tostada" to 25
     )
 
     // Consulta de solo lectura del stock (retorna copia inmutable)
@@ -22,7 +43,7 @@ object InventarioService {
     }
 
     fun reabastecerTodo(cantidadPorIngrediente: Int = 15) {
-        listOf("Masa", "Salsa de Tomate", "Queso Mozzarella", "Pepperoni", "Jamón", "Champiñones").forEach {
+        stockIngredientes.keys.toList().forEach {
             stockIngredientes[it] = (stockIngredientes[it] ?: 0) + cantidadPorIngrediente
         }
     }
@@ -32,7 +53,7 @@ object InventarioService {
         val faltantes = mutableListOf<String>()
 
         for ((ingrediente, cantidadRequerida) in requeridos) {
-            val disponible = stockIngredientes[ingrediente] ?: 0
+            val disponible = stockIngredientes.getOrPut(ingrediente) { 20 }
             if (disponible < cantidadRequerida) {
                 faltantes.add("$ingrediente (Requerido: $cantidadRequerida, Disponible: $disponible)")
             }

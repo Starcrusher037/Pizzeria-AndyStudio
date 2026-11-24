@@ -56,11 +56,11 @@ object FormatoUtilidades {
     }
 
     /**
-     * Formatea un valor monetario a Pesos Chilenos (CLP):
-     * e.g. 9990.0 -> "$9.990" o "$9.990 CLP"
+     * Formatea un valor monetario a Pesos Chilenos (CLP) ajustado a multiplos de 10:
+     * e.g. 8991.0 -> "$8.990" o "$8.990 CLP"
      */
     fun formatearCLP(monto: Double, incluirMoneda: Boolean = false): String {
-        val entero = monto.toLong()
+        val entero = Math.round(monto / 10.0) * 10
         val formatoMiles = java.text.DecimalFormat("#,###", java.text.DecimalFormatSymbols(java.util.Locale("es", "CL")))
         val formateado = "$" + formatoMiles.format(entero)
         return if (incluirMoneda) "$formateado CLP" else formateado

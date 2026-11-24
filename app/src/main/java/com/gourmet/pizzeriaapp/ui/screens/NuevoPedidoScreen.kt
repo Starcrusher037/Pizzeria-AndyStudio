@@ -271,7 +271,7 @@ fun NuevoPedidoScreen(appState: PizzeriaAppState) {
                         }
 
                         FilaTotal("Descuento Total Acumulado", "-$${"%.2f".format(pedidoPreview.calcularDescuento())}", Color(0xFF2E7D32))
-                        FilaTotal("Impuestos (IVA 19%)", "$${"%.2f".format(pedidoPreview.calcularImpuestos())}")
+                        FilaTotal("IVA incluido (19%)", "$${"%.2f".format(pedidoPreview.calcularImpuestos())}")
                         HorizontalDivider()
 
                         Row(
@@ -322,7 +322,7 @@ fun NuevoPedidoScreen(appState: PizzeriaAppState) {
     if (appState.errorStockFaltante != null) {
         AlertDialog(
             onDismissRequest = { appState.errorStockFaltante = null },
-            title = { Text("⚠️ Stock Insuficiente") },
+            title = { Text("Stock Insuficiente") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text("No hay suficientes insumos en inventario para procesar el pedido:")
@@ -331,7 +331,7 @@ fun NuevoPedidoScreen(appState: PizzeriaAppState) {
                     }
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        "Puedes dirigirte a la pestaña 'Inventario' para reabastecer los ingredientes.",
+                        "Puedes presionar 'Reabastecer Todo' para recargar los ingredientes de la simulación.",
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

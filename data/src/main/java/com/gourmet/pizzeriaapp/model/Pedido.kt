@@ -53,23 +53,29 @@ class Pedido(
         return productos.sumOf { it.precio }
     }
 
+    private fun redondearMultiplo10(valor: Double): Double {
+        return Math.round(valor / 10.0) * 10.0
+    }
+
     /**
      * Desglose del descuento por volumen (mas de 3 productos).
      */
     fun calcularDescuentoVolumen(): Double {
         val subtotal = calcularSubtotal()
-        return if (productos.size > UMBRAL_PIZZAS_DESCUENTO) subtotal * PORCENTAJE_DESCUENTO_VOLUMEN else 0.0
+        val desc = if (productos.size > UMBRAL_PIZZAS_DESCUENTO) subtotal * PORCENTAJE_DESCUENTO_VOLUMEN else 0.0
+        return redondearMultiplo10(desc)
     }
 
     /**
      * Desglose del descuento por rango de fechas promocional (Paso 1).
      */
     fun calcularDescuentoPorFecha(): Double {
-        return if (estaEnPeriodoPromocion()) {
+        val desc = if (estaEnPeriodoPromocion()) {
             calcularSubtotal() * PromocionFechaHelper.PORCENTAJE_DESCUENTO_FECHA
         } else {
             0.0
         }
+        return redondearMultiplo10(desc)
     }
 
     /**
@@ -83,7 +89,7 @@ class Pedido(
                 totalDescuentoAnotacion += producto.precio * anotacion.descuentoAdicional
             }
         }
-        return totalDescuentoAnotacion
+        return redondearMultiplo10(totalDescuentoAnotacion)
     }
 
     /**
@@ -93,17 +99,18 @@ class Pedido(
      * - Descuento dinamico por anotaciones @Promocionable.
      */
     fun calcularDescuento(): Double {
-        return calcularDescuentoVolumen() + calcularDescuentoPorFecha() + calcularDescuentoPorAnotacion()
+        return redondearMultiplo10(calcularDescuentoVolumen() + calcularDescuentoPorFecha() + calcularDescuentoPorAnotacion())
     }
 
     fun calcularImpuestos(): Double {
-        val neto = (calcularSubtotal() - calcularDescuento()).coerceAtLeast(0.0)
-        return neto * TASA_IVA
+        val total = calcularTotal()
+        val neto = total / (1.0 + TASA_IVA)
+        return redondearMultiplo10(total - neto)
     }
 
     fun calcularTotal(): Double {
-        val neto = (calcularSubtotal() - calcularDescuento()).coerceAtLeast(0.0)
-        return neto + calcularImpuestos()
+        val total = (calcularSubtotal() - calcularDescuento()).coerceAtLeast(0.0)
+        return redondearMultiplo10(total)
     }
 
     /**

@@ -46,7 +46,7 @@ fun PedidosFigmaScreen(
     appState: PizzeriaAppState,
     onNavigateToNuevoPedido: () -> Unit
 ) {
-    var pedidoEnCursoEstado by remember { mutableStateOf("En el horno") }
+    val pedidoActivo = appState.listaPedidos.firstOrNull()
 
     val pedidosHistoricos = listOf(
         PedidoHistoricoFigma(
@@ -120,164 +120,244 @@ fun PedidosFigmaScreen(
 
         // TARJETA DE PEDIDO EN CURSO
         item {
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = SurfaceCard),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
+            if (pedidoActivo != null) {
+                val pasoActual = when (pedidoActivo.estadoPedido) {
+                    "En preparacion" -> 0
+                    "En el horno" -> 1
+                    "En camino" -> 2
+                    "Listo", "Entregado" -> 3
+                    else -> 1
+                }
+                val estadoTitulo = when (pedidoActivo.estadoPedido) {
+                    "En preparacion" -> "Recibido"
+                    "En el horno" -> "En el horno"
+                    "En camino" -> "En camino"
+                    "Listo", "Entregado" -> "Entregado"
+                    else -> pedidoActivo.estadoPedido
+                }
+                val estadoSubtitulo = when (pedidoActivo.estadoPedido) {
+                    "En preparacion" -> "Tu pedido fue recibido y está en cola de cocina"
+                    "En el horno" -> "Tu masa artesanal se está horneando"
+                    "En camino" -> "El repartidor va en camino a tu dirección"
+                    "Listo", "Entregado" -> "Tu pedido ha sido completado y entregado"
+                    else -> "Procesando pedido"
+                }
+                val tiempoEstimado = when (pedidoActivo.estadoPedido) {
+                    "En preparacion", "En el horno" -> "20–25 min"
+                    "En camino" -> "10–15 min"
+                    "Listo", "Entregado" -> "Completado"
+                    else -> "20 min"
+                }
+                val resumenProductos = pedidoActivo.productos
+                    .groupBy { it.nombre }
+                    .entries
+                    .joinToString(" + ") { "${it.value.size}x ${it.key}" }
+
+                Card(
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    // Estado actual y tiempo estimado
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.Top
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
+                        // Estado actual y tiempo estimado
                         Row(
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(44.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(PizzaRedLight),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Whatshot,
+                                        contentDescription = "Estado",
+                                        tint = PizzaRed,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                                Column {
+                                    Text(
+                                        text = estadoTitulo,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextPrimary
+                                    )
+                                    Text(
+                                        text = estadoSubtitulo,
+                                        fontSize = 11.sp,
+                                        color = TextSecondary,
+                                        lineHeight = 15.sp
+                                    )
+                                }
+                            }
+
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(
+                                    text = "Tiempo estimado",
+                                    fontSize = 11.sp,
+                                    color = TextMuted
+                                )
+                                Text(
+                                    text = tiempoEstimado,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = PizzaRed
+                                )
+                            }
+                        }
+
+                        // Barra de progreso y pasos
+                        ProgressTimeline(pasoActual = pasoActual)
+
+                        // Tarjeta interna con resumen de productos
+                        Surface(
+                            shape = RoundedCornerShape(14.dp),
+                            color = SurfaceBeigeLight,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                AsyncImage(
+                                    model = "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=500&q=80",
+                                    contentDescription = "Pedido",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .size(68.dp)
+                                        .clip(RoundedCornerShape(10.dp))
+                                )
+
+                                Column(
+                                    modifier = Modifier.weight(1f),
+                                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                                ) {
+                                    Text(
+                                        text = resumenProductos.ifBlank { "Productos del pedido" },
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextPrimary,
+                                        maxLines = 2,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        text = "Entrega: ${pedidoActivo.cliente.direccion}",
+                                        fontSize = 11.sp,
+                                        color = TextSecondary,
+                                        lineHeight = 14.sp,
+                                        maxLines = 1,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        text = "Total: ${FormatoUtilidades.formatearCLP(pedidoActivo.calcularTotal(), incluirMoneda = true)}",
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextPrimary
+                                    )
+                                }
+                            }
+                        }
+
+                        // Sucursal y botón Actualizar
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(44.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(PizzaRedLight),
-                                contentAlignment = Alignment.Center
+                            Row(
+                                modifier = Modifier.weight(1f),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Whatshot,
-                                    contentDescription = "Horno",
-                                    tint = PizzaRed,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-                            Column {
-                                Text(
-                                    text = "En el horno",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = TextPrimary
+                                    imageVector = Icons.Default.Spa,
+                                    contentDescription = null,
+                                    tint = FreshGreen,
+                                    modifier = Modifier.size(16.dp)
                                 )
                                 Text(
-                                    text = "Tu masa artesanal se está\nhorneando",
-                                    fontSize = 11.sp,
+                                    text = "Pedido #${pedidoActivo.idPedido} · Sucursal Providencia",
+                                    fontSize = 12.sp,
                                     color = TextSecondary,
-                                    lineHeight = 15.sp
+                                    fontWeight = FontWeight.Medium,
+                                    maxLines = 1,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                                 )
                             }
-                        }
 
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text(
-                                text = "Tiempo estimado",
-                                fontSize = 11.sp,
-                                color = TextMuted
-                            )
-                            Text(
-                                text = "20–25 min",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = PizzaRed
-                            )
-                        }
-                    }
-
-                    // Barra de progreso y pasos
-                    ProgressTimeline(pasoActual = 1)
-
-                    // Tarjeta interna con resumen de productos
-                    Surface(
-                        shape = RoundedCornerShape(14.dp),
-                        color = SurfaceBeigeLight,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            AsyncImage(
-                                model = "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=500&q=80",
-                                contentDescription = "Pizza Pepperoni",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .size(68.dp)
-                                    .clip(RoundedCornerShape(10.dp))
-                            )
-
-                            Column(
-                                modifier = Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(2.dp)
+                            Button(
+                                onClick = {
+                                    val siguienteEstado = when (pedidoActivo.estadoPedido) {
+                                        "En preparacion" -> "En el horno"
+                                        "En el horno" -> "En camino"
+                                        "En camino" -> "Listo"
+                                        else -> "En preparacion"
+                                    }
+                                    appState.cambiarEstadoPedido(pedidoActivo, siguienteEstado)
+                                    appState.mensajeNotificacion = "Estado de pedido #${pedidoActivo.idPedido}: $siguienteEstado"
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = SurfaceBeige),
+                                shape = RoundedCornerShape(10.dp),
+                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
                             ) {
                                 Text(
-                                    text = "1 Pizza Pepperoni + 2 Bebidas",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = TextPrimary
-                                )
-                                Text(
-                                    text = "Masa tradicional · Orilla con ajo · 2x Limonada Italiana",
-                                    fontSize = 11.sp,
-                                    color = TextSecondary,
-                                    lineHeight = 14.sp
-                                )
-                                Text(
-                                    text = "Total: $14.990",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = TextPrimary
+                                    text = "Actualizar",
+                                    color = TextPrimary,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
                         }
                     }
-
-                    // Sucursal y botón Actualizar
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                }
+            } else {
+                Card(
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Row(
-                            modifier = Modifier.weight(1f),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Spa,
-                                contentDescription = null,
-                                tint = FreshGreen,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Text(
-                                text = "Pedido #4892 · Sucursal Providencia",
-                                fontSize = 12.sp,
-                                color = TextSecondary,
-                                fontWeight = FontWeight.Medium,
-                                maxLines = 1,
-                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                            )
-                        }
-
+                        Text(
+                            text = "No tienes pedidos en curso",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                        Text(
+                            text = "Cuando realices un pedido podrás seguir su preparación y entrega en tiempo real.",
+                            fontSize = 13.sp,
+                            color = TextSecondary,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
                         Button(
-                            onClick = {
-                                appState.mensajeNotificacion = "Estado de pedido #4892 actualizado: En el horno"
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = SurfaceBeige),
-                            shape = RoundedCornerShape(10.dp),
-                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                            onClick = onNavigateToNuevoPedido,
+                            colors = ButtonDefaults.buttonColors(containerColor = PizzaRed),
+                            shape = RoundedCornerShape(10.dp)
                         ) {
-                            Text(
-                                text = "Actualizar",
-                                color = TextPrimary,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold
-                            )
+                            Text("Hacer un pedido", color = Color.White, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -412,18 +492,19 @@ fun PedidosFigmaScreen(
             }
         }
 
-        // Si el usuario ha generado nuevos pedidos en la app:
-        if (appState.listaPedidos.isNotEmpty()) {
+        // Otros pedidos registrados previamente:
+        val otrosPedidos = appState.listaPedidos.drop(1)
+        if (otrosPedidos.isNotEmpty()) {
             item {
                 Text(
-                    text = "Tus pedidos recientes registrados",
+                    text = "Tus otros pedidos registrados",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextSecondary,
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }
-            items(appState.listaPedidos.take(3), key = { it.idPedido }) { pedido ->
+            items(otrosPedidos, key = { it.idPedido }) { pedido ->
                 Card(
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = SurfaceCard),

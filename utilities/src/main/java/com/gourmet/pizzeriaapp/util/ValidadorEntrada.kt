@@ -10,7 +10,7 @@ import com.gourmet.pizzeriaapp.utilidades.ValidadorUtilidades
 object ValidadorEntrada {
 
     val regexNombre = Regex("^[\\p{L}]+([\\p{L} '\\-]*[\\p{L}]+)?$")
-    val regexDireccion = Regex("^[\\p{L}][\\p{L}0-9 .,'°#\\-]*(\\d+)?$")
+    val regexDireccion = Regex("^[\\p{L}0-9][\\p{L}0-9 .,'°#/\\-]*$")
 
     fun validarNombre(nombre: String): Result<String> {
         val limpio = nombre.trim()
@@ -32,11 +32,10 @@ object ValidadorEntrada {
         }
         if (!regexDireccion.matches(limpio)) {
             return Result.failure(
-                IllegalArgumentException("La dirección debe comenzar con el nombre de la calle (ej: 'Av. Las Heras 1234').")
+                IllegalArgumentException("La dirección debe contener un nombre de calle y numeración válidos.")
             )
         }
-        val direccionFinal = if (!limpio.last().isDigit()) "$limpio #0" else limpio
-        return Result.success(direccionFinal)
+        return Result.success(limpio)
     }
 
     fun validarTelefono(telefono: String?): Result<String?> {

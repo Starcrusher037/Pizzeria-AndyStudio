@@ -1,5 +1,11 @@
 package com.gourmet.pizzeriaapp.ui.screens
 
+/**
+ * NOTA: Esta pantalla y sus funciones asociadas de inventario y gestión de repartidores
+ * fueron retiradas de la navegación principal del cliente y quedan reservadas para una
+ * futura implementación (por ejemplo, panel de administración interno o módulo de cocina).
+ */
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
