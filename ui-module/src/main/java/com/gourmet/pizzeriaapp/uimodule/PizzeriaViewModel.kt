@@ -20,7 +20,8 @@ data class ResumenEstado(
     val totalClientes: Int = 0,
     val totalPedidos: Int = 0,
     val ultimoCliente: String? = null,
-    val cargando: Boolean = false
+    val cargando: Boolean = false,
+    val mensajeProgreso: String = "Cargando datos..."
 )
 
 /**
@@ -56,27 +57,35 @@ class PizzeriaViewModel : ViewModel() {
     fun actualizarResumen(
         totalClientes: Int,
         totalPedidos: Int,
-        ultimoCliente: String?
+        ultimoCliente: String?,
+        conSimulacionCarga: Boolean = false
     ) {
         viewModelScope.launch {
+            if (conSimulacionCarga) {
+                _resumen.update { it.copy(cargando = true, mensajeProgreso = "Cargando datos desde el sistema...") }
+                kotlinx.coroutines.delay(500)
+                _resumen.update { it.copy(mensajeProgreso = "Generando resumen...") }
+                kotlinx.coroutines.delay(400)
+            }
             _resumen.update { estadoActual ->
                 estadoActual.copy(
                     totalClientes = totalClientes,
                     totalPedidos = totalPedidos,
                     ultimoCliente = ultimoCliente,
-                    cargando = false
+                    cargando = false,
+                    mensajeProgreso = ""
                 )
             }
         }
     }
 
     /**
-     * Marca el estado como "cargando" mientras se obtienen los datos del sistema.
+     * Marca el estado como "cargando" con mensaje personalizado mientras se obtienen datos.
      * Utiliza coroutines para ejecutar la operacion de forma asincronica.
      */
-    fun iniciarCarga() {
+    fun iniciarCarga(mensaje: String = "Cargando datos...") {
         viewModelScope.launch {
-            _resumen.update { it.copy(cargando = true) }
+            _resumen.update { it.copy(cargando = true, mensajeProgreso = mensaje) }
         }
     }
 }

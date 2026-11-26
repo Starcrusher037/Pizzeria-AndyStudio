@@ -6,10 +6,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,8 +32,13 @@ fun PizzeriaTopBar(
     titulo: String,
     cantidadCarrito: Int = 0,
     onCarritoClick: () -> Unit = {},
-    onPerfilClick: () -> Unit = {}
+    onPerfilClick: () -> Unit = {},
+    onNavigateToClientes: () -> Unit = {},
+    onNavigateToProductos: () -> Unit = {},
+    onNavigateToPedidos: () -> Unit = {}
 ) {
+    var menuDesplegado by remember { mutableStateOf(false) }
+
     Surface(
         color = CreamBackground,
         modifier = Modifier
@@ -85,7 +91,7 @@ fun PizzeriaTopBar(
                 )
             }
 
-            // Acciones: Carrito y Perfil
+            // Acciones: Carrito, Perfil y Menú Desplegable
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -139,6 +145,69 @@ fun PizzeriaTopBar(
                         tint = Color.White,
                         modifier = Modifier.size(20.dp)
                     )
+                }
+
+                // Menú desplegable interactivo con opciones clave e iconos
+                Box(contentAlignment = Alignment.Center) {
+                    IconButton(
+                        onClick = { menuDesplegado = true },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "Menú de navegación",
+                            tint = TextPrimary
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = menuDesplegado,
+                        onDismissRequest = { menuDesplegado = false },
+                        modifier = Modifier.background(SurfaceCard)
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Gestión de Clientes", fontWeight = FontWeight.Medium, color = TextPrimary) },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.People,
+                                    contentDescription = null,
+                                    tint = PizzaRed
+                                )
+                            },
+                            onClick = {
+                                menuDesplegado = false
+                                onNavigateToClientes()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Catálogo de Productos", fontWeight = FontWeight.Medium, color = TextPrimary) },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.LocalPizza,
+                                    contentDescription = null,
+                                    tint = PizzaRed
+                                )
+                            },
+                            onClick = {
+                                menuDesplegado = false
+                                onNavigateToProductos()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Gestión de Pedidos", fontWeight = FontWeight.Medium, color = TextPrimary) },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
+                                    contentDescription = null,
+                                    tint = PizzaRed
+                                )
+                            },
+                            onClick = {
+                                menuDesplegado = false
+                                onNavigateToPedidos()
+                            }
+                        )
+                    }
                 }
             }
         }

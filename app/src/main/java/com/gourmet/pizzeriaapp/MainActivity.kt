@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,6 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.LocalPizza
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -104,7 +107,8 @@ fun PizzeriaMainScreen() {
         viewModel.actualizarResumen(
             totalClientes = clientes.size,
             totalPedidos = appState.listaPedidos.size,
-            ultimoCliente = ultimoCliente
+            ultimoCliente = ultimoCliente,
+            conSimulacionCarga = true
         )
     }
 
@@ -138,7 +142,15 @@ fun PizzeriaMainScreen() {
                 titulo = tituloActual,
                 cantidadCarrito = appState.productosEnCarrito.size,
                 onCarritoClick = { mostrarCarritoSheet = true },
-                onPerfilClick = { mostrarPerfilDialog = true }
+                onPerfilClick = { mostrarPerfilDialog = true },
+                onNavigateToClientes = { mostrarPerfilDialog = true },
+                onNavigateToProductos = {
+                    categoriaFiltroParaNuevoPedido = null
+                    pestanaSeleccionada = 1
+                },
+                onNavigateToPedidos = {
+                    pestanaSeleccionada = 2
+                }
             )
         },
         bottomBar = {
@@ -159,39 +171,48 @@ fun PizzeriaMainScreen() {
                 .padding(innerPadding)
                 .background(CreamBackground)
         ) {
-            when (pestanaSeleccionada) {
-                // Pantalla 1 Figma: Inicio
-                0 -> InicioScreen(
-                    appState = appState,
-                    onNavigateToNuevoPedido = { filtro ->
-                        categoriaFiltroParaNuevoPedido = filtro
-                        pestanaSeleccionada = 1
-                    },
-                    onNavigateToPromos = {
-                        pestanaSeleccionada = 3
-                    }
-                )
-                // Pantalla 2 Figma: Nuevo Pedido
-                1 -> NuevoPedidoFigmaScreen(
-                    appState = appState,
-                    filtroInicial = categoriaFiltroParaNuevoPedido,
-                    onVerCarritoClick = { mostrarCarritoSheet = true }
-                )
-                // Pantalla 3 Figma: Pedidos en curso e históricos
-                2 -> PedidosFigmaScreen(
-                    appState = appState,
-                    onNavigateToNuevoPedido = { pestanaSeleccionada = 1 }
-                )
-                // Pantalla 4 Figma: Promos que enamoran
-                3 -> PromosFigmaScreen(
-                    appState = appState,
-                    onNavigateToNuevoPedido = { pestanaSeleccionada = 1 }
-                )
-                // Pantalla 5 Figma: Nuestras Sucursales
-                4 -> SucursalesFigmaScreen(
-                    appState = appState,
-                    onOrdenarAquiClick = { pestanaSeleccionada = 1 }
-                )
+            AnimatedContent(
+                targetState = pestanaSeleccionada,
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(300)) togetherWith fadeOut(animationSpec = tween(300))
+                },
+                label = "ScreenFadeTransition"
+            ) { pestana ->
+                when (pestana) {
+                    // Pantalla 1 Figma: Inicio
+                    0 -> InicioScreen(
+                        appState = appState,
+                        viewModel = viewModel,
+                        onNavigateToNuevoPedido = { filtro ->
+                            categoriaFiltroParaNuevoPedido = filtro
+                            pestanaSeleccionada = 1
+                        },
+                        onNavigateToPromos = {
+                            pestanaSeleccionada = 3
+                        }
+                    )
+                    // Pantalla 2 Figma: Nuevo Pedido
+                    1 -> NuevoPedidoFigmaScreen(
+                        appState = appState,
+                        filtroInicial = categoriaFiltroParaNuevoPedido,
+                        onVerCarritoClick = { mostrarCarritoSheet = true }
+                    )
+                    // Pantalla 3 Figma: Pedidos en curso e históricos
+                    2 -> PedidosFigmaScreen(
+                        appState = appState,
+                        onNavigateToNuevoPedido = { pestanaSeleccionada = 1 }
+                    )
+                    // Pantalla 4 Figma: Promos que enamoran
+                    3 -> PromosFigmaScreen(
+                        appState = appState,
+                        onNavigateToNuevoPedido = { pestanaSeleccionada = 1 }
+                    )
+                    // Pantalla 5 Figma: Nuestras Sucursales
+                    4 -> SucursalesFigmaScreen(
+                        appState = appState,
+                        onOrdenarAquiClick = { pestanaSeleccionada = 1 }
+                    )
+                }
             }
         }
     }
@@ -289,7 +310,12 @@ fun PerfilClienteDialog(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("🍕", fontSize = 16.sp)
+                        Icon(
+                            imageVector = Icons.Default.LocalPizza,
+                            contentDescription = null,
+                            tint = FreshGreen,
+                            modifier = Modifier.size(20.dp)
+                        )
                         Column {
                             Text("Puntos Pizzalover: 450 pts", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = FreshGreen)
                             Text("¡Tienes 1 pizza mediana gratis por canjear!", fontSize = 11.sp, color = FreshGreen)

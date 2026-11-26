@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.LocalOffer
+import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -61,7 +62,7 @@ fun PromosFigmaScreen(
             badge1Color = PizzaRed,
             badge2Texto = null,
             badge2Color = null,
-            badgeInferiorTexto = "🕐 Válido todos los martes",
+            badgeInferiorTexto = "Válido todos los martes",
             imageUrl = "https://images.unsplash.com/photo-1579751626657-72bc17010498?w=800&q=80",
             precioPromo = 10490.0
         ),
@@ -75,7 +76,7 @@ fun PromosFigmaScreen(
             badge1Color = PizzaRed,
             badge2Texto = "COMBO FAMILIAR",
             badge2Color = FreshGreen,
-            badgeInferiorTexto = "👥 Ideal para 4–5 personas",
+            badgeInferiorTexto = "Ideal para 4–5 personas",
             imageUrl = "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&q=80",
             precioPromo = 18990.0
         ),
@@ -89,7 +90,7 @@ fun PromosFigmaScreen(
             badge1Color = FreshGreen,
             badge2Texto = "100% Vegetariana",
             badge2Color = FreshGreen,
-            badgeInferiorTexto = "🍃 Solo miércoles",
+            badgeInferiorTexto = "Solo miércoles",
             imageUrl = "https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=800&q=80",
             precioPromo = 8990.0
         )
@@ -132,7 +133,12 @@ fun PromosFigmaScreen(
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
-                                Text("🔥", fontSize = 11.sp)
+                                Icon(
+                                    imageVector = Icons.Default.Whatshot,
+                                    contentDescription = null,
+                                    tint = PizzaRedDark,
+                                    modifier = Modifier.size(13.dp)
+                                )
                                 Text(
                                     text = "Recién salidas del horno",
                                     color = PizzaRedDark,

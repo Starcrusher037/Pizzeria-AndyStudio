@@ -52,7 +52,7 @@ fun ReportePedidosScreen(appState: PizzeriaAppState) {
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Text(
-                        text = "📊 Reporte Diario Consolidado",
+                        text = "Reporte Diario Consolidado",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer

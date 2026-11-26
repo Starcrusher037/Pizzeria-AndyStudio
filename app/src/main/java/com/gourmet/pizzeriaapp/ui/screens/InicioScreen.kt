@@ -1,5 +1,9 @@
 package com.gourmet.pizzeriaapp.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,7 +18,7 @@ import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.LocalPizza
 import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,26 +33,95 @@ import com.gourmet.pizzeriaapp.model.Pizza
 import com.gourmet.pizzeriaapp.model.Producto
 import com.gourmet.pizzeriaapp.ui.PizzeriaAppState
 import com.gourmet.pizzeriaapp.ui.theme.*
+import com.gourmet.pizzeriaapp.uimodule.MensajeResumen
+import com.gourmet.pizzeriaapp.uimodule.PizzeriaViewModel
 import com.gourmet.pizzeriaapp.utilidades.FormatoUtilidades
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 
 @Composable
 fun InicioScreen(
     appState: PizzeriaAppState,
+    viewModel: PizzeriaViewModel? = null,
     onNavigateToNuevoPedido: (String?) -> Unit,
     onNavigateToPromos: () -> Unit
 ) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(CreamBackground)
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(top = 12.dp, bottom = 28.dp)
+    val resumenEstado = viewModel?.resumen?.collectAsState()?.value
+    var contenidoVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        contenidoVisible = true
+    }
+
+    AnimatedVisibility(
+        visible = contenidoVisible,
+        enter = fadeIn(animationSpec = tween(500)),
+        exit = fadeOut(animationSpec = tween(300))
     ) {
-        // HERO BANNER
-        item {
-            HeroBanner(onPedirAhoraClick = { onNavigateToNuevoPedido(null) })
-        }
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(CreamBackground)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(top = 12.dp, bottom = 28.dp)
+        ) {
+            // HERO BANNER
+            item {
+                HeroBanner(onPedirAhoraClick = { onNavigateToNuevoPedido(null) })
+            }
+
+            // Resumen del sistema con indicador de progreso dinámico
+            if (resumenEstado != null) {
+                item {
+                    AnimatedVisibility(
+                        visible = resumenEstado.cargando,
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        Card(
+                            shape = RoundedCornerShape(14.dp),
+                            colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(14.dp)
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    strokeWidth = 2.5.dp,
+                                    color = PizzaRed
+                                )
+                                Column {
+                                    Text(
+                                        text = resumenEstado.mensajeProgreso.ifBlank { "Cargando datos..." },
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextPrimary
+                                    )
+                                    Text(
+                                        text = "Sincronizando con el módulo de datos",
+                                        fontSize = 11.sp,
+                                        color = TextSecondary
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    AnimatedVisibility(
+                        visible = !resumenEstado.cargando,
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        MensajeResumen(estado = resumenEstado)
+                    }
+                }
+            }
 
         // EXPLORA EL MENÚ
         item {
@@ -191,7 +264,12 @@ fun InicioScreen(
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Text("🌶", fontSize = 12.sp)
+                            Icon(
+                                imageVector = Icons.Default.Whatshot,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(13.dp)
+                            )
                             Text(
                                 text = "Promo del día",
                                 color = Color.White,
@@ -226,17 +304,29 @@ fun InicioScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = PizzaRed),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text(
-                            text = "Aprovechar promo 🏷",
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text(
+                                text = "Aprovechar promo",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp
+                            )
+                            Icon(
+                                imageVector = Icons.Default.LocalOffer,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
                     }
                 }
             }
         }
     }
+}
 }
 
 @Composable
@@ -286,7 +376,12 @@ private fun HeroBanner(onPedirAhoraClick: () -> Unit) {
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Text("🔥", fontSize = 12.sp)
+                        Icon(
+                            imageVector = Icons.Default.Whatshot,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(13.dp)
+                        )
                         Text(
                             text = "Recién salida del horno",
                             color = Color.White,

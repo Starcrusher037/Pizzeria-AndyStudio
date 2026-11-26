@@ -241,7 +241,7 @@ fun NuevoPedidoScreen(appState: PizzeriaAppState) {
                 ) {
                     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            text = "🧾 Desglose de Totales y Descuentos",
+                            text = "Desglose de Totales y Descuentos",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )

@@ -140,7 +140,7 @@ fun SucursalesFigmaScreen(
                             .offset(x = (-50).dp, y = (-48).dp)
                     )
 
-                    // Pill flotante "🟢 3 hornos encendidos cerca de ti"
+                    // Pill flotante indicadora de hornos encendidos
                     Surface(
                         color = Color.White.copy(alpha = 0.95f),
                         shape = RoundedCornerShape(50.dp),

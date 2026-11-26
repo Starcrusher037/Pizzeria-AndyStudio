@@ -171,6 +171,7 @@ fun PedidosFigmaScreen(
                             verticalAlignment = Alignment.Top
                         ) {
                             Row(
+                                modifier = Modifier.weight(1f),
                                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -188,7 +189,9 @@ fun PedidosFigmaScreen(
                                         modifier = Modifier.size(24.dp)
                                     )
                                 }
-                                Column {
+                                Column(
+                                    modifier = Modifier.weight(1f, fill = false)
+                                ) {
                                     Text(
                                         text = estadoTitulo,
                                         fontSize = 16.sp,
@@ -204,17 +207,23 @@ fun PedidosFigmaScreen(
                                 }
                             }
 
-                            Column(horizontalAlignment = Alignment.End) {
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            Column(
+                                horizontalAlignment = Alignment.End
+                            ) {
                                 Text(
                                     text = "Tiempo estimado",
                                     fontSize = 11.sp,
-                                    color = TextMuted
+                                    color = TextMuted,
+                                    maxLines = 1
                                 )
                                 Text(
                                     text = tiempoEstimado,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.ExtraBold,
-                                    color = PizzaRed
+                                    color = PizzaRed,
+                                    maxLines = 1
                                 )
                             }
                         }
